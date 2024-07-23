@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Journal App</string>
+    //prompts
+    <string name="prompt_1">Can you describe a moment from your day that stood out to you the most?</string>
+    <string name="prompt_2">Did any particular theme or thought recur in your mind throughout the day?</string>
+    <string name="prompt_3">Did you have any significant conversations today and how did they make you feel?</string>
+    <string name="prompt_4">What was a highlight in your day today?</string>
+    <string name="prompt_5">What was a challenge you faced today?</string>
+    <string name="prompt_6">If you could summarize your day in 3 words what would they be?</string>
+    <string name="prompt_7">How are you feeling today? (Select all that apply)</string>
+    <string name="prompt_8">What was the weather like today? (Select at most 2)</string>
+    <string name="prompt_9">If your day was a piece of art, which artist/artistic style would it resemble? (Select 1)</string>
+    <string name="questionCt">%s/9</string>
+</resources>
