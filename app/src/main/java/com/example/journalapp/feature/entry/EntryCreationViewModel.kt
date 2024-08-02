@@ -9,13 +9,23 @@ import com.example.journalapp.model.JournalEntry
 import com.example.journalapp.network.ImageServiceImpl
 import com.example.journalapp.network.GptServiceImpl
 import com.example.journalapp.repositories.GPTRepository
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.storage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.InputStream
+import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 class EntryCreationViewModel() : BaseViewModel, ViewModel() {
@@ -77,8 +87,18 @@ class EntryCreationViewModel() : BaseViewModel, ViewModel() {
         generatedPrompt = gptRepository.makePrompt(uiState.value)
         //launch coroutine to run asynch functions
         viewModelScope.launch {
-            val url = makeAndDisplayImage(generatedPrompt) ?: ""
-            _uiState.update { it.copy(prompt = url) }
+            try {
+                val url = makeAndDisplayImage(generatedPrompt)
+
+                // Switch to IO dispatcher for network operation
+                val imageData: ByteArray = withContext(Dispatchers.IO) {
+                    URL(url).openStream().use { it.readBytes() }
+                }
+
+                _uiState.update { it.copy(prompt = url, imageData = imageData) }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -89,34 +109,51 @@ class EntryCreationViewModel() : BaseViewModel, ViewModel() {
 
     private fun addEntryToFirebase() {
         val currentUser = FirebaseAuth.getInstance().currentUser ?: return
-        val entry = JournalEntry(
-            userId = currentUser.uid,
-            dateCreated = Timestamp.now(),
-            imageUrl = _uiState.value.prompt,
-            frqAnswers = mapOf(
-                "one" to _uiState.value.answerOne,
-                "two" to _uiState.value.answerTwo,
-                "three" to _uiState.value.answerThree,
-                "four" to _uiState.value.answerFour,
-                "five" to _uiState.value.answerFive,
-                "six" to _uiState.value.answerSix
-            ),
-            mcAnswers = listOf(
-                _uiState.value.emotions,
-                _uiState.value.weather,
-                _uiState.value.artists
-            )
-        )
-        getCollectionReferenceForJournalEntries()?.add(entry)
-            ?.addOnSuccessListener { documentReference ->
-                val journalId = documentReference.id
-                entry.journalId = journalId
-                documentReference.update("journalId", journalId)
-            }
-            ?.addOnFailureListener { e ->//fix later
+        val storage = FirebaseStorage.getInstance().reference
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val name = currentUser.uid+"${currentUser.uid}_image_$timeStamp.png"//ensures diff reference for each generated image
+        val imageRef = storage.child("images/${currentUser.uid}/$name")
+        var firebaseImageUrl = ""
+        // Upload the image
+        _uiState.value.imageData?.let { input ->
+            val uploadTask = imageRef.putBytes(input)
+            uploadTask.addOnSuccessListener {
+                // Image uploaded successfully
+                imageRef.downloadUrl.addOnSuccessListener { uri ->
+                    firebaseImageUrl = uri.toString()
+                    val entry = JournalEntry(
+                        entryName = _uiState.value.entryName,
+                        userId = currentUser.uid,
+                        dateCreated = Timestamp.now(),
+                        imageUrl = firebaseImageUrl,
+                        frqAnswers = mapOf(
+                            "one" to _uiState.value.answerOne,
+                            "two" to _uiState.value.answerTwo,
+                            "three" to _uiState.value.answerThree,
+                            "four" to _uiState.value.answerFour,
+                            "five" to _uiState.value.answerFive,
+                            "six" to _uiState.value.answerSix
+                        ),
+                        mcAnswers = listOf(
+                            _uiState.value.emotions,
+                            _uiState.value.weather,
+                            _uiState.value.artists
+                        )
+                    )
+                    getCollectionReferenceForJournalEntries()?.add(entry)
+                        ?.addOnSuccessListener { documentReference ->
+                            val journalId = documentReference.id
+                            entry.journalId = journalId
+                            documentReference.update("journalId", journalId)
+                        }
+                        ?.addOnFailureListener { e ->//todo: fix later
+                            e.message
+                        }
+                }
+            }.addOnFailureListener { e ->//todo: fix later
                 e.message
-                //Toast.makeText(context, "Failed to add entry: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+        }
     }
 
     private suspend fun makeAndDisplayImage(generatedPrompt: String): String {
@@ -140,6 +177,8 @@ sealed class EntryCreationScreenEvent : BaseViewModelEvent() {
 
 //Data Class for the UI state
 data class EntryCreationUiState(
+    var entryName: String = "Untitled",
+    val imageData: ByteArray? = null,
     val answerOne: String = " ",
     val answerTwo: String = " ",
     val answerThree: String = " ",

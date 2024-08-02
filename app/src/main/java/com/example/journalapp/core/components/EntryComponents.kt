@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -57,12 +58,18 @@ import com.example.journalapp.feature.entry.EntryCreationUiState
 import com.example.journalapp.ui.theme.JournalTheme
 import com.example.journalapp.ui.theme.spacing
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PagingEntries(
     navController: NavController,
     onHandleEvent: (EntryCreationScreenEvent) -> Unit,
     uiState: EntryCreationUiState
 ) {
+    // State for managing dialog visibility
+    var (showDialog, setShowDialog) = remember { mutableStateOf(false) }
+
+    // State for managing the user input in the dialog
+    var entryName by remember { mutableStateOf("") }
 
     val entries = listOf(
         Pair(stringResource(id = R.string.prompt_1), null),
@@ -120,13 +127,60 @@ fun PagingEntries(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     Button(
                         onClick = {
-                            onHandleEvent(EntryCreationScreenEvent.AddToEntries)//todo: update method impl when landing screen is made
-                            navController.navigate("landing")
+                            setShowDialog(true)//triggers dialog that allows user ot name entry
                         },
                     ) {
                         Text(
                             text = "Add to Entries",
                             color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+
+                    // Conditionally show the dialog based on the showDialog state
+                    if (showDialog) {
+                        AlertDialog(
+                            onDismissRequest = {
+                                setShowDialog(false)
+                            },
+                            title = {
+                                Text(text = "Would you like to name you're entry?")
+                            },
+                            text = {
+                                TextField(
+                                    value = entryName,
+                                    onValueChange = { entryName = it },
+                                    label = { Text("Entry Name") },
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = TextFieldDefaults.textFieldColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiary
+                                    ),
+                                )
+                            },
+                            //actions for if user does go back
+                            confirmButton = {
+                                Button(
+                                    onClick = {
+                                        uiState.entryName = entryName
+                                        setShowDialog(false) // Dismiss the dialog
+                                        onHandleEvent(EntryCreationScreenEvent.AddToEntries)//todo: update method impl when landing screen is made
+                                        navController.navigate("landing")
+                                    }
+                                ) {
+                                    Text("Submit")
+                                }
+                            },
+                            //action if user doesn't wanna go back
+                            dismissButton = {
+                                Button(
+                                    onClick = {
+                                        setShowDialog(false)
+                                        onHandleEvent(EntryCreationScreenEvent.AddToEntries)//todo: update method impl when landing screen is made
+                                        navController.navigate("landing")
+                                    }
+                                ) {
+                                    Text("No")
+                                }
+                            }
                         )
                     }
                 }

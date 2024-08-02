@@ -28,8 +28,9 @@ import com.example.journalapp.ui.theme.spacing
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
-    hint: String = "Search",
-    onQueryChanged: (String) -> Unit
+    hint: String = "Search by name",
+    onQueryChanged: (String) -> Unit,
+    onClear: () -> Unit
 ) {
     var query by remember {
         mutableStateOf("")
@@ -54,7 +55,10 @@ fun SearchBar(
         },
         trailingIcon = {
             if (query.isNotEmpty()) {
-                IconButton(onClick = { query = "" }) {
+                IconButton(onClick = {
+                    query = ""
+                    onClear()
+                }) {
                     Icon(
                         imageVector = Icons.Filled.Clear,
                         contentDescription = "Clear Icon"

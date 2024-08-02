@@ -9,6 +9,7 @@ import com.example.journalapp.feature.auth.AuthViewModel
 import com.example.journalapp.feature.auth.EmailLoginScreen
 import com.example.journalapp.feature.auth.SignUpScreen
 import com.example.journalapp.feature.entries.LandingScreen
+import com.example.journalapp.feature.entries.LandingScreenEvent
 import com.example.journalapp.feature.entries.LandingViewModel
 import com.example.journalapp.feature.entry.EntryCreationScreen
 import com.example.journalapp.feature.entry.EntryCreationViewModel
@@ -33,7 +34,7 @@ fun AppNavigation(
                 SignUpScreen(modifier, navController, authViewModel)
             }
             composable("landing"){
-                LandingScreen(modifier,navController,authViewModel, landingViewModel)
+                LandingScreen(modifier,navController,authViewModel, landingViewModel, onHandleEvent = landingViewModel::handleEvent )
             }
             composable("entryCreation"){
                 EntryCreationScreen(onBack = navController::navigateUp, viewModel = entryCreationViewModel, onHandleEvent = entryCreationViewModel::handleEvent, navController = navController)

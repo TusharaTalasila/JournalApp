@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseUser
 import java.util.Date
 
 data class JournalEntry(
+    val entryName: String = "",
     var journalId: String = "",
     var userId: String = "",
     var dateCreated: Timestamp? = null,

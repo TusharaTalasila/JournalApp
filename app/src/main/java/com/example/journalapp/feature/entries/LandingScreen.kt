@@ -46,8 +46,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.journalapp.R
 import com.example.journalapp.core.components.EntryCard
+import com.example.journalapp.core.components.EntryList
+import com.example.journalapp.core.components.PromptDisplay
 import com.example.journalapp.core.components.SearchBar
 import com.example.journalapp.feature.auth.AuthState
 import com.example.journalapp.feature.auth.AuthViewModel
@@ -58,7 +61,8 @@ fun LandingScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     authViewModel: AuthViewModel,
-    landingViewModel: LandingViewModel
+    landingViewModel: LandingViewModel,
+    onHandleEvent: (LandingScreenEvent) -> Unit,
 ) {
     val authState = authViewModel.uiState.observeAsState()
     val uiState = landingViewModel.uiState.collectAsStateWithLifecycle()
@@ -98,7 +102,11 @@ fun LandingScreen(
         //entry display row
         Column(
             modifier = Modifier
-               .padding(bottom = MaterialTheme.spacing.xLarge, start = MaterialTheme.spacing.large, end = MaterialTheme.spacing.large)
+                .padding(
+                    bottom = MaterialTheme.spacing.xLarge,
+                    start = MaterialTheme.spacing.large,
+                    end = MaterialTheme.spacing.large
+                )
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.background)
                 .weight(5f),
@@ -107,14 +115,17 @@ fun LandingScreen(
         ) {
             //search bar
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = MaterialTheme.spacing.medium), // Ensures the Row fills the max width of its parent
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = MaterialTheme.spacing.medium), // Ensures the Row fills the max width of its parent
                 verticalAlignment = Alignment.CenterVertically // Aligns children to the center vertically
             ) {
                 SearchBar(
                     modifier = Modifier.weight(1f), // Takes up the remaining space after IconButton
-                    onQueryChanged = {
-                        // TODO: Handle search query changes
-                    }
+                    onQueryChanged = {query->
+                        onHandleEvent(LandingScreenEvent.SearchQueryChanged(query))
+                    },
+                    onClear = {onHandleEvent(LandingScreenEvent.SearchCleared)}
                 )
                 IconButton(onClick = { /*TODO: Add handle event method to pop up with filter options*/ }) {
                     Icon(
@@ -136,9 +147,8 @@ fun LandingScreen(
                         shape = RoundedCornerShape(MaterialTheme.spacing.small)
                     )
             ) {
-                LazyColumn {
-                    // Your LazyColumn content goes here
-                }
+                val entries = uiState.value.filteredEntries
+                EntryList(entries = entries)
             }
         }
 
@@ -186,7 +196,7 @@ fun LandingScreen(
                             Icon(
                                 imageVector = Icons.Filled.Add,
                                 contentDescription = "User's button",
-                                tint = MaterialTheme.colorScheme.onBackground,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(30.dp) // You can adjust the size (width and height) here
                             )
                         }

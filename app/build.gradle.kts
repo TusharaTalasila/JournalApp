@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.firebase.firestore)
     implementation(libs.androidx.compose.material)
+    implementation(libs.firebase.storage)
     val nav_version = "2.7.7"
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
