@@ -1,9 +1,7 @@
 package com.example.journalapp.repositories
 
 import com.example.journalapp.feature.entry.EntryCreationUiState
-import com.example.journalapp.model.GptBody
 import com.example.journalapp.network.GptService
-import kotlinx.coroutines.flow.StateFlow
 
 class GPTRepository(private val gptService: GptService) {
     fun makePrompt(uiState: EntryCreationUiState): String {

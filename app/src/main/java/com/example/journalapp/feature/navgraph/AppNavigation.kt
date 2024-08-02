@@ -9,6 +9,7 @@ import com.example.journalapp.feature.auth.AuthViewModel
 import com.example.journalapp.feature.auth.EmailLoginScreen
 import com.example.journalapp.feature.auth.SignUpScreen
 import com.example.journalapp.feature.entries.LandingScreen
+import com.example.journalapp.feature.entries.LandingViewModel
 import com.example.journalapp.feature.entry.EntryCreationScreen
 import com.example.journalapp.feature.entry.EntryCreationViewModel
 
@@ -16,7 +17,8 @@ import com.example.journalapp.feature.entry.EntryCreationViewModel
 fun AppNavigation(
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel,
-    entryCreationViewModel: EntryCreationViewModel
+    entryCreationViewModel: EntryCreationViewModel,
+    landingViewModel: LandingViewModel
 ) {//Todo: Add in VM's for all 4 screens
     val navController = rememberNavController()
 
@@ -31,7 +33,7 @@ fun AppNavigation(
                 SignUpScreen(modifier, navController, authViewModel)
             }
             composable("landing"){
-                LandingScreen(modifier,navController,authViewModel,entryCreationViewModel)
+                LandingScreen(modifier,navController,authViewModel, landingViewModel)
             }
             composable("entryCreation"){
                 EntryCreationScreen(onBack = navController::navigateUp, viewModel = entryCreationViewModel, onHandleEvent = entryCreationViewModel::handleEvent, navController = navController)

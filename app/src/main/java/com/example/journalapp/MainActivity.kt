@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.example.journalapp.feature.auth.AuthViewModel
+import com.example.journalapp.feature.entries.LandingViewModel
 import com.example.journalapp.feature.entry.EntryCreationScreen
 import com.example.journalapp.feature.entry.EntryCreationViewModel
 import com.example.journalapp.feature.navgraph.AppNavigation
@@ -24,10 +25,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val entryCreationViewModel = EntryCreationViewModel()
         val authViewModel : AuthViewModel by viewModels()
+        val landingViewModel = LandingViewModel()
         setContent {
             JournalTheme {//apply theme to composable
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding->
-                   AppNavigation(modifier = Modifier.padding(innerPadding),authViewModel = authViewModel, entryCreationViewModel = entryCreationViewModel)
+                   AppNavigation(modifier = Modifier.padding(innerPadding),authViewModel = authViewModel, entryCreationViewModel,landingViewModel = landingViewModel)
                 }
 
             }

@@ -1,5 +1,6 @@
 package com.example.journalapp.core.components
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,6 +20,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -33,6 +37,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -238,6 +243,7 @@ fun EntryDisplay(
 }
 
 //takes a list of options and a lambda for when an option is chosen (adds that option to the corresponding answer)
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun MultipleChoice(
     index: Int,
@@ -246,42 +252,48 @@ fun MultipleChoice(
 ) {
     val originalColor = MaterialTheme.colorScheme.tertiary
     val selectedColor = MaterialTheme.colorScheme.secondary
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = MaterialTheme.spacing.small)
-            .background(
-                color = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(8.dp)
-            )
-    ) {
-        for (entry in map.toList()) {
-            var isSelected by remember { mutableStateOf(false) }
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .height(75.dp)
-                    .padding(vertical = MaterialTheme.spacing.large)
-                    .background(
-                        color = if (isSelected) selectedColor else originalColor,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clickable {
-                        isSelected = !isSelected
-                        onHandleEvent(
-                            EntryCreationScreenEvent.AnswerMcEntry(entry, index)
-                        )
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = entry.first,
-                    style = MaterialTheme.typography.labelLarge,
+    val selectedStates = remember { mutableStateMapOf<String, Boolean>().withDefault { false } }
+    val scrollState = rememberLazyListState()
+
+        LazyColumn(
+            state = scrollState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = MaterialTheme.spacing.small)
+                .background(
+                    color = MaterialTheme.colorScheme.background,
+                    shape = RoundedCornerShape(8.dp)
                 )
+        ) {
+            items(map.toList()) { entry ->
+                val isSelected = selectedStates[entry.first] ?: false
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(75.dp)
+                        .padding(vertical = MaterialTheme.spacing.large)
+                        .background(
+                            color = if (isSelected) selectedColor else originalColor,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clickable {
+                            selectedStates[entry.first] = !isSelected
+                            onHandleEvent(
+                                EntryCreationScreenEvent.AnswerMcEntry(entry, index)
+                            )
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = entry.first,
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                }
             }
+
         }
-    }
+
 }
 
 @Composable

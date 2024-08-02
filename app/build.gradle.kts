@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.journalapp"
-        minSdk = 24
+        minSdk = 25
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -58,10 +58,11 @@ android {
 
 dependencies {
     implementation(libs.androidx.material3.android)
-    //implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.androidx.lifecycle.runtime.compose.android)
     implementation(libs.firebase.auth)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.firebase.firestore)
+    implementation(libs.androidx.compose.material)
     val nav_version = "2.7.7"
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

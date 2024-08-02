@@ -4,14 +4,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.journalapp.core.components.BaseViewModel
 import com.example.journalapp.core.components.BaseViewModelEvent
+import com.example.journalapp.getCollectionReferenceForJournalEntries
+import com.example.journalapp.model.JournalEntry
 import com.example.journalapp.network.ImageServiceImpl
 import com.example.journalapp.network.GptServiceImpl
 import com.example.journalapp.repositories.GPTRepository
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
 
 class EntryCreationViewModel() : BaseViewModel, ViewModel() {
     private val imageService = ImageServiceImpl()
@@ -21,8 +26,6 @@ class EntryCreationViewModel() : BaseViewModel, ViewModel() {
     private val gptRepository = GPTRepository(gptService)
     private var generatedPrompt = ""
 
-    init {//todo: add in init methods if needed
-    }
 
     //handle event method
     override fun handleEvent(event: BaseViewModelEvent) {
@@ -74,29 +77,63 @@ class EntryCreationViewModel() : BaseViewModel, ViewModel() {
         generatedPrompt = gptRepository.makePrompt(uiState.value)
         //launch coroutine to run asynch functions
         viewModelScope.launch {
-            val url = makeAndDisplayImage(generatedPrompt)?:""
+            val url = makeAndDisplayImage(generatedPrompt) ?: ""
             _uiState.update { it.copy(prompt = url) }
         }
     }
 
-    private fun handleAddToEntries(){
+    private fun handleAddToEntries() {
+        addEntryToFirebase()//at this point entry has been made
         _uiState.update { it.copy(prompt = "") }
     }
 
+    private fun addEntryToFirebase() {
+        val currentUser = FirebaseAuth.getInstance().currentUser ?: return
+        val entry = JournalEntry(
+            userId = currentUser.uid,
+            dateCreated = Timestamp.now(),
+            imageUrl = _uiState.value.prompt,
+            frqAnswers = mapOf(
+                "one" to _uiState.value.answerOne,
+                "two" to _uiState.value.answerTwo,
+                "three" to _uiState.value.answerThree,
+                "four" to _uiState.value.answerFour,
+                "five" to _uiState.value.answerFive,
+                "six" to _uiState.value.answerSix
+            ),
+            mcAnswers = listOf(
+                _uiState.value.emotions,
+                _uiState.value.weather,
+                _uiState.value.artists
+            )
+        )
+        getCollectionReferenceForJournalEntries()?.add(entry)
+            ?.addOnSuccessListener { documentReference ->
+                val journalId = documentReference.id
+                entry.journalId = journalId
+                documentReference.update("journalId", journalId)
+            }
+            ?.addOnFailureListener { e ->//fix later
+                e.message
+                //Toast.makeText(context, "Failed to add entry: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
 
-    suspend fun makeAndDisplayImage(generatedPrompt:String): String{
-       val prompt = gptService.getGptResponse(generatedPrompt)//Todo: uncomment these lines
-       val cleanPrompt = prompt.replace(Regex("[^A-Za-z]+"), " ").trim()
-        val url =  imageService.getImageResponse(cleanPrompt)
-        return url?:""
+    private suspend fun makeAndDisplayImage(generatedPrompt: String): String {
+        val prompt = gptService.getGptResponse(generatedPrompt)//Todo: uncomment these lines
+        val cleanPrompt = prompt.replace(Regex("[^A-Za-z]+"), " ").trim()
+        val url = imageService.getImageResponse(cleanPrompt)
+        return url ?: ""
     }
 
 }
+
 //sealed class for all types events
 sealed class EntryCreationScreenEvent : BaseViewModelEvent() {
     data class AnswerEntry(val answer: String, val index: Int) : EntryCreationScreenEvent()
     data class AnswerMcEntry(val emotion: Pair<String, Boolean>, val index: Int) :
         EntryCreationScreenEvent()
+
     data object GenerateClicked : EntryCreationScreenEvent()
     data object AddToEntries : EntryCreationScreenEvent()
 }
