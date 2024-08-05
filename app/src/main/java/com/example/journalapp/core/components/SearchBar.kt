@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.ContentAlpha
 import com.example.journalapp.ui.theme.spacing
@@ -35,6 +36,8 @@ fun SearchBar(
     var query by remember {
         mutableStateOf("")
     }
+
+    val focusManager = LocalFocusManager.current
 
     OutlinedTextField(
         value = query,
@@ -58,6 +61,7 @@ fun SearchBar(
                 IconButton(onClick = {
                     query = ""
                     onClear()
+                    focusManager.clearFocus()
                 }) {
                     Icon(
                         imageVector = Icons.Filled.Clear,

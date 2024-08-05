@@ -340,6 +340,7 @@ fun MultipleChoice(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
+                        modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large),
                         text = entry.first,
                         style = MaterialTheme.typography.labelLarge,
                     )
@@ -401,16 +402,6 @@ fun Question(index: Int, prompt: String) {
     }
 }
 
-
-@Composable
-fun PromptDisplay(string: String) {
-    AsyncImage(
-        model = string,
-        contentDescription = null,
-    )
-}
-
-@Preview
 @Composable
 fun LoadingScreen() {
     JournalTheme {
@@ -421,8 +412,6 @@ fun LoadingScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            //Illustration
-            // Place your illustration here
             Image(
                 painter = painterResource(id = R.drawable.loadstate),
                 contentDescription = "LoadImage",
