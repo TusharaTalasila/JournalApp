@@ -12,11 +12,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.example.journalapp.feature.auth.AuthViewModel
 import com.example.journalapp.feature.entries.LandingViewModel
-import com.example.journalapp.feature.entry.EntryCreationScreen
 import com.example.journalapp.feature.entry.EntryCreationViewModel
 import com.example.journalapp.feature.navgraph.AppNavigation
 import com.example.journalapp.ui.theme.JournalTheme
-import com.google.firebase.BuildConfig
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("StateFlowValueCalledInComposition")

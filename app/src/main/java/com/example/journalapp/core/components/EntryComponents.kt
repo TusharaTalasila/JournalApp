@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -66,7 +67,7 @@ fun PagingEntries(
     uiState: EntryCreationUiState
 ) {
     // State for managing dialog visibility
-    var (showDialog, setShowDialog) = remember { mutableStateOf(false) }
+    val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
 
     // State for managing the user input in the dialog
     var entryName by remember { mutableStateOf("") }
@@ -308,7 +309,10 @@ fun MultipleChoice(
     val selectedColor = MaterialTheme.colorScheme.secondary
     val selectedStates = remember { mutableStateMapOf<String, Boolean>().withDefault { false } }
     val scrollState = rememberLazyListState()
-
+    LaunchedEffect(index) {
+        // uiState recomposes due to the list update
+        scrollState.scrollToItem(0)
+    }
         LazyColumn(
             state = scrollState,
             modifier = Modifier

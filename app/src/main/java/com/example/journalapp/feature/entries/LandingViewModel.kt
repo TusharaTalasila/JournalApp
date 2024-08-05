@@ -32,8 +32,11 @@ class LandingViewModel : BaseViewModel, ViewModel() {
             is LandingScreenEvent.EntryCardClicked -> handleEntryCardClicked(event.selectedEntry)
             is LandingScreenEvent.EntryCardReset -> handleEntryCardReset()
             is LandingScreenEvent.EntryCardFlipped -> handleEntryCardFlipped()
+            is LandingScreenEvent.OldestClicked -> handleOldestClicked()
+            is LandingScreenEvent.NewestClicked -> handleNewestClicked()
         }
     }
+
 
     fun fetchJournalEntries() {
         user?.let {
@@ -70,6 +73,15 @@ class LandingViewModel : BaseViewModel, ViewModel() {
         _uiState.update { it.copy(isFlipped = switch) }
     }
 
+    private fun handleOldestClicked(){
+        val entries = uiState.value.journalEntries.sortedBy { it.dateCreated }
+        _uiState.update { it.copy(journalEntries = entries) }
+    }
+
+    private fun handleNewestClicked(){
+        val entries = uiState.value.journalEntries.sortedByDescending { it.dateCreated }
+        _uiState.update { it.copy(journalEntries = entries) }
+    }
 
 }
 
@@ -79,6 +91,10 @@ sealed class LandingScreenEvent : BaseViewModelEvent() {
     data class EntryCardClicked(val selectedEntry: JournalEntry) : LandingScreenEvent()
     data object EntryCardReset : LandingScreenEvent()
     data object EntryCardFlipped : LandingScreenEvent()
+
+    data object OldestClicked : LandingScreenEvent()
+    data object NewestClicked : LandingScreenEvent()
+    data class DateRangeSelected(val start: String, val end: String): LandingScreenEvent()
 
 }
 
@@ -102,4 +118,9 @@ data class LandingScreenUiState(
         }
         return filteredList
     }
+}
+
+enum class SortOption {
+    NewestFirst,
+    OldestFirst
 }

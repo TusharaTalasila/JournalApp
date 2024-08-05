@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -142,7 +143,6 @@ fun Entry(
                         color = MaterialTheme.colorScheme.tertiary,
                         shape = RoundedCornerShape(8.dp)
                     ),
-                horizontalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = answer,
@@ -219,6 +219,10 @@ fun MultipleChoiceDisplay(
     val originalColor = MaterialTheme.colorScheme.tertiary
     val selectedColor = MaterialTheme.colorScheme.secondary
     val scrollState = rememberLazyListState()
+    LaunchedEffect(mcAnswers) {
+        // uiState recomposes due to the list update
+        scrollState.scrollToItem(0)
+    }
     LazyColumn(
         state = scrollState,
         modifier = Modifier
@@ -238,7 +242,7 @@ fun MultipleChoiceDisplay(
                     .height(75.dp)
                     .padding(vertical = MaterialTheme.spacing.large)
                     .background(
-                        color = if (isSelected == true) selectedColor else originalColor,
+                        color = if (isSelected) selectedColor else originalColor,
                         shape = RoundedCornerShape(MaterialTheme.spacing.small)
                     ),
                 verticalAlignment = Alignment.CenterVertically,

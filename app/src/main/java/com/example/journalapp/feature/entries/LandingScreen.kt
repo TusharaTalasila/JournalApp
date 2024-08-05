@@ -1,13 +1,17 @@
 package com.example.journalapp.feature.entries
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,18 +21,30 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.example.journalapp.R
 import com.example.journalapp.core.components.EnlargedEntryView
 import com.example.journalapp.core.components.EntryList
 import com.example.journalapp.core.components.SearchBar
@@ -36,6 +52,7 @@ import com.example.journalapp.feature.auth.AuthState
 import com.example.journalapp.feature.auth.AuthViewModel
 import com.example.journalapp.ui.theme.spacing
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LandingScreen(
     modifier: Modifier = Modifier,
@@ -46,6 +63,7 @@ fun LandingScreen(
 ) {
     val authState = authViewModel.uiState.observeAsState()
     val uiState = landingViewModel.uiState.collectAsStateWithLifecycle()
+    var (showFilterDialog, setShowFilterDialog) = remember { mutableStateOf(false) }
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Unauthenticated -> navController.navigate("login")
@@ -102,12 +120,12 @@ fun LandingScreen(
             ) {
                 SearchBar(
                     modifier = Modifier.weight(1f), // Takes up the remaining space after IconButton
-                    onQueryChanged = {query->
+                    onQueryChanged = { query ->
                         onHandleEvent(LandingScreenEvent.SearchQueryChanged(query))
                     },
-                    onClear = {onHandleEvent(LandingScreenEvent.SearchCleared)}
+                    onClear = { onHandleEvent(LandingScreenEvent.SearchCleared) }
                 )
-                IconButton(onClick = { /*TODO: Add handle event method to pop up with filter options*/ }) {
+                IconButton(onClick = { setShowFilterDialog(true) }) {
                     Icon(
                         imageVector = Icons.Default.List,
                         contentDescription = "Filter Entries",
@@ -115,22 +133,124 @@ fun LandingScreen(
                         modifier = Modifier.size(30.dp)
                     )
                 }
+
+                if (showFilterDialog) {
+
+                    var selectedSortOption by remember { mutableStateOf(SortOption.NewestFirst) }
+                    //filter dialog
+                    AlertDialog(
+                        onDismissRequest = { showFilterDialog = false },
+                        title = { Text(text = "Filters") },
+                        text = {
+                            Column() {
+                                Text(text = "Sort By", style = MaterialTheme.typography.bodyLarge)
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable(onClick = {
+                                            selectedSortOption = SortOption.NewestFirst
+                                        })
+                                ) {
+                                    RadioButton(
+                                        selected = selectedSortOption == SortOption.NewestFirst,
+                                        onClick = { selectedSortOption = SortOption.NewestFirst }
+                                    )
+                                    Text(
+                                        text = "Newest first",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier.padding(
+                                            start = MaterialTheme.spacing.xSmall,
+                                            top = MaterialTheme.spacing.medium
+                                        )
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable(onClick = {
+                                            selectedSortOption = SortOption.OldestFirst
+                                        })
+                                ) {
+                                    RadioButton(
+                                        selected = selectedSortOption == SortOption.OldestFirst,
+                                        onClick = { selectedSortOption = SortOption.OldestFirst }
+                                    )
+                                    Text(
+                                        text = "Oldest first",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier.padding(
+                                            start = MaterialTheme.spacing.xSmall,
+                                            top = MaterialTheme.spacing.medium
+                                        )
+                                    )
+                                }
+
+                            }
+                        },
+                        //actions for if user does go back
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    if (selectedSortOption == SortOption.NewestFirst) {
+                                        onHandleEvent(LandingScreenEvent.NewestClicked)
+                                    }
+                                    if (selectedSortOption == SortOption.OldestFirst) {
+                                        onHandleEvent(LandingScreenEvent.OldestClicked)
+                                    }
+                                    setShowFilterDialog(false) // Dismiss the dialog
+                                }
+                            ) {
+                                Text("Apply")
+                            }
+                        },
+                        //action if user doesn't wanna go back
+                        dismissButton = {
+                            Button(
+                                onClick = {
+                                    setShowFilterDialog(false)
+                                }
+                            ) {
+                                Text("Cancel")
+                            }
+                        }
+                    )
+                }
             }
 
-            //entry display
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        shape = RoundedCornerShape(MaterialTheme.spacing.small)
+           /* if(uiState.value.filteredEntries.isEmpty()){
+                //add no results found screen
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.tertiary,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .weight(1f),
+                ) {
+                    // Place your illustration here
+                    Image(
+                        painter = painterResource(id = R.drawable.noresults),
+                        contentDescription = "Illustration"
                     )
-            ) {
-                val entries = uiState.value.filteredEntries
-                EntryList(entries = entries, onHandleEvent, uiState.value)
+                }
+            }*/
+                //entry display
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.tertiary,
+                            shape = RoundedCornerShape(MaterialTheme.spacing.small)
+                        )
+                ) {
+                    val entries = uiState.value.filteredEntries
+                    EntryList(entries = entries, onHandleEvent, uiState.value)
+                }
+
             }
-        }
 
         //make entries button row
         Column(
@@ -158,7 +278,6 @@ fun LandingScreen(
                 ) {
 
                 }
-                // This is the smaller box for the question number
                 Box(
                     modifier = Modifier
                         .offset(y = (-30).dp)
@@ -186,8 +305,12 @@ fun LandingScreen(
         }
 
     }
-    uiState.value.selectedEntry?.let{entry ->
-        EnlargedEntryView(entry = entry, uiState = uiState.value, onCardReset = {onHandleEvent(LandingScreenEvent.EntryCardReset)} , onCardFlip = { onHandleEvent(LandingScreenEvent.EntryCardFlipped) })
+    uiState.value.selectedEntry?.let { entry ->
+        EnlargedEntryView(
+            entry = entry,
+            uiState = uiState.value,
+            onCardReset = { onHandleEvent(LandingScreenEvent.EntryCardReset) },
+            onCardFlip = { onHandleEvent(LandingScreenEvent.EntryCardFlipped) })
     }
 
 }
