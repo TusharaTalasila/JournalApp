@@ -36,12 +36,11 @@ class LandingViewModel : BaseViewModel, ViewModel() {
     }
 
     fun fetchJournalEntries() {
-        viewModelScope.launch {
-            var entries: List<JournalEntry>? = listOf()
-            while (entries.isNullOrEmpty()) {
-                entries = user?.let { dbService.getJournalEntries(it.uid) }
+        user?.let {
+            viewModelScope.launch {
+                val entries = dbService.getJournalEntries(it.uid)
+                _uiState.update { it.copy(journalEntries = entries) }
             }
-            _uiState.update { it.copy(journalEntries = entries) }
         }
     }
 
@@ -57,16 +56,16 @@ class LandingViewModel : BaseViewModel, ViewModel() {
 
     private fun handleEntryCardClicked(selectedEntry: JournalEntry?) {
         //update uiState
-        selectedEntry?.let{
+        selectedEntry?.let {
             _uiState.update { it.copy(selectedEntry = selectedEntry) }
         }
     }
 
-    private fun handleEntryCardReset(){
+    private fun handleEntryCardReset() {
         _uiState.update { it.copy(selectedEntry = null, isFlipped = false) }
     }
 
-    private fun handleEntryCardFlipped(){
+    private fun handleEntryCardFlipped() {
         val switch = !uiState.value.isFlipped
         _uiState.update { it.copy(isFlipped = switch) }
     }
@@ -78,7 +77,7 @@ sealed class LandingScreenEvent : BaseViewModelEvent() {
     data class SearchQueryChanged(val query: String) : LandingScreenEvent()
     data object SearchCleared : LandingScreenEvent()
     data class EntryCardClicked(val selectedEntry: JournalEntry) : LandingScreenEvent()
-    data object EntryCardReset: LandingScreenEvent()
+    data object EntryCardReset : LandingScreenEvent()
     data object EntryCardFlipped : LandingScreenEvent()
 
 }
