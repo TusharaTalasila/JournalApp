@@ -73,10 +73,7 @@ fun PagingEntries(
 ) {
     // State for managing dialog visibility
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
-
-    // State for managing the user input in the dialog
-    var entryName by remember { mutableStateOf("") }
-
+    val (entryName, setEntryName) = remember { mutableStateOf("") }
     val entries = listOf(
         Pair(stringResource(id = R.string.prompt_1), null),
         Pair(stringResource(id = R.string.prompt_2), null),
@@ -141,7 +138,6 @@ fun PagingEntries(
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
-
                     // Conditionally show the dialog based on the showDialog state
                     if (showDialog) {
                         AlertDialog(
@@ -149,38 +145,41 @@ fun PagingEntries(
                                 setShowDialog(false)
                             },
                             title = {
-                                Text(text = "Would you like to name you're entry?")
+                                Text(text = "Would you like to name your entry? (15 char max)")
                             },
                             text = {
                                 TextField(
                                     value = entryName,
-                                    onValueChange = { entryName = it },
+                                    onValueChange = { newEntryName ->
+                                        if (newEntryName.length <= 15) {
+                                            setEntryName(newEntryName)
+                                        }
+                                    },
                                     label = { Text("Entry Name") },
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(MaterialTheme.spacing.small),
                                     colors = TextFieldDefaults.textFieldColors(
                                         containerColor = MaterialTheme.colorScheme.tertiary
                                     ),
                                 )
                             },
-                            //actions for if user does go back
                             confirmButton = {
                                 Button(
                                     onClick = {
                                         uiState.entryName = entryName
                                         setShowDialog(false) // Dismiss the dialog
-                                        onHandleEvent(EntryCreationScreenEvent.AddToEntries)//todo: update method impl when landing screen is made
+                                        onHandleEvent(EntryCreationScreenEvent.AddToEntries)
                                         navController.navigate("landing")
-                                    }
+                                    },
+                                    enabled = entryName.isNotBlank() && entryName.length <= 15 // Button is enabled only if criteria are met
                                 ) {
                                     Text("Submit")
                                 }
                             },
-                            //action if user doesn't wanna go back
                             dismissButton = {
                                 Button(
                                     onClick = {
                                         setShowDialog(false)
-                                        onHandleEvent(EntryCreationScreenEvent.AddToEntries)//todo: update method impl when landing screen is made
+                                        onHandleEvent(EntryCreationScreenEvent.AddToEntries)
                                         navController.navigate("landing")
                                     }
                                 ) {

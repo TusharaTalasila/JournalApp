@@ -86,6 +86,7 @@ fun EntryCreationScreen(
                         Button(
                             onClick = {
                                 // Handle the back action
+                                onHandleEvent(EntryCreationScreenEvent.BackPostGen)
                                 onBack()
                                 setShowDialog(false) // Dismiss the dialog
                             }

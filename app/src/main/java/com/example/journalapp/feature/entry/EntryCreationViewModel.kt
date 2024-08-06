@@ -44,6 +44,7 @@ class EntryCreationViewModel() : BaseViewModel, ViewModel() {
             is EntryCreationScreenEvent.AnswerMcEntry -> handleMcEntry(event.emotion, event.index)
             is EntryCreationScreenEvent.GenerateClicked -> handleSubmitClicked()
             is EntryCreationScreenEvent.AddToEntries -> handleAddToEntries()
+            is EntryCreationScreenEvent.BackPostGen -> handleBackPostGen()
         }
 
     }
@@ -107,6 +108,9 @@ class EntryCreationViewModel() : BaseViewModel, ViewModel() {
         _uiState.update { it.copy(prompt = "") }
     }
 
+    private fun handleBackPostGen(){
+        _uiState.update { it.copy(prompt = "") }
+    }
     private fun addEntryToFirebase() {
         val currentUser = FirebaseAuth.getInstance().currentUser ?: return
         val storage = FirebaseStorage.getInstance().reference
@@ -173,6 +177,7 @@ sealed class EntryCreationScreenEvent : BaseViewModelEvent() {
 
     data object GenerateClicked : EntryCreationScreenEvent()
     data object AddToEntries : EntryCreationScreenEvent()
+    data object BackPostGen : EntryCreationScreenEvent()
 }
 
 //Data Class for the UI state
