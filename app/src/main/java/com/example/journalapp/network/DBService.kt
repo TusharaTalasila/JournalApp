@@ -1,10 +1,12 @@
 package com.example.journalapp.network
 
+import android.os.Parcelable
+
 import com.example.journalapp.model.JournalEntry
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QuerySnapshot
-import kotlinx.coroutines.flow.Flow
+
 
 interface DBService {
     suspend fun getJournalEntries(currentUserUid: String) : List<JournalEntry>
+    fun deleteJournalEntry(journalEntry: JournalEntry)
+
 }

@@ -98,7 +98,7 @@ fun SignUpScreen(
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
 
             TextField(value = email, onValueChange = { email = it }, label = {
-                Text(text = "Email")
+                Text(text = "Email                                 ")
             }, shape = RoundedCornerShape(8.dp), colors = TextFieldDefaults.textFieldColors(
                 containerColor = MaterialTheme.colorScheme.tertiary
             )
@@ -110,7 +110,7 @@ fun SignUpScreen(
                 value = password,
                 onValueChange = { password = it },
                 label = {
-                    Text(text = "Password (must be atleast 6 characters")
+                    Text(text = "Password")
                 },
                 visualTransformation = PasswordVisualTransformation(),
                 shape = RoundedCornerShape(8.dp),
@@ -138,7 +138,7 @@ fun SignUpScreen(
 
             Button(onClick = {
                 if ((email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()) && (password.equals(confirmPassword))) {
-                    authViewModel.login(email, password)
+                    authViewModel.signUp(email, password)
                 }
                 else if(!password.equals(confirmPassword)){
                     Toast.makeText(
@@ -162,7 +162,8 @@ fun SignUpScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             TextButton(onClick = { /*lambda to transport user ot sign up page*/
-                navController.navigate("landing")//pass in the route to move to the sign up pg
+
+                navController.navigate("login")//pass in the route to move to the sign up pg
             }) {
                 Text(
                     text = "Already have an account?",

@@ -84,4 +84,5 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.navigation:navigation-compose:$nav_version")
     implementation("androidx.compose.ui:ui-text-google-fonts:1.6.8")
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
 }

@@ -34,6 +34,7 @@ class LandingViewModel : BaseViewModel, ViewModel() {
             is LandingScreenEvent.EntryCardFlipped -> handleEntryCardFlipped()
             is LandingScreenEvent.OldestClicked -> handleOldestClicked()
             is LandingScreenEvent.NewestClicked -> handleNewestClicked()
+            is LandingScreenEvent.EntryDeleted -> handleEntryDeleted(event.entry)
         }
     }
 
@@ -83,6 +84,10 @@ class LandingViewModel : BaseViewModel, ViewModel() {
         _uiState.update { it.copy(journalEntries = entries) }
     }
 
+    private fun handleEntryDeleted(entry: JournalEntry){
+        dbService.deleteJournalEntry(entry)
+    }
+
 }
 
 sealed class LandingScreenEvent : BaseViewModelEvent() {
@@ -91,10 +96,10 @@ sealed class LandingScreenEvent : BaseViewModelEvent() {
     data class EntryCardClicked(val selectedEntry: JournalEntry) : LandingScreenEvent()
     data object EntryCardReset : LandingScreenEvent()
     data object EntryCardFlipped : LandingScreenEvent()
-
+    data class EntryDeleted(val entry: JournalEntry) : LandingScreenEvent()
     data object OldestClicked : LandingScreenEvent()
     data object NewestClicked : LandingScreenEvent()
-    data class DateRangeSelected(val start: String, val end: String): LandingScreenEvent()
+
 
 }
 

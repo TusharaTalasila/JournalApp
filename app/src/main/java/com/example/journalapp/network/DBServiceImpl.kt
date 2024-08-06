@@ -1,10 +1,17 @@
 package com.example.journalapp.network
 
+import android.content.ContentValues.TAG
+import android.util.Log
+import com.example.journalapp.getCollectionReferenceForJournalEntries
 import com.example.journalapp.model.JournalEntry
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthCredential
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.toObject
+import com.google.rpc.context.AttributeContext
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -40,5 +47,15 @@ class DBServiceImpl() : DBService {
                 }
             }
     }
+
+    override fun deleteJournalEntry(journalEntry: JournalEntry) {
+        val entryRef = getCollectionReferenceForJournalEntries()?.document(journalEntry.journalId)
+        entryRef?.delete()?.addOnSuccessListener {
+            Log.d(TAG, "Journal entry successfully deleted")
+        }?.addOnFailureListener { e ->//todo: fix later
+            e.message
+        }
+    }
+
 
 }

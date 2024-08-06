@@ -271,7 +271,7 @@ fun LandingScreen(
                         )
                 ) {
                     val entries = uiState.value.filteredEntries
-                    EntryList(entries = entries, onHandleEvent, uiState.value)
+                    EntryList(entries = entries, uiState.value,  onHandleEvent)
                 }
             }
 

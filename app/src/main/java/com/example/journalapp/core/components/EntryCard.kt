@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,25 +18,32 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberImagePainter
 import com.example.journalapp.feature.entries.LandingScreenEvent
 import com.example.journalapp.feature.entries.LandingScreenUiState
+import com.example.journalapp.feature.entry.EntryCreationUiState
 
 import com.example.journalapp.feature.entry.EntryCreationViewModel
 import com.example.journalapp.feature.entrydisplay.EntryDisplayScreen
@@ -49,7 +57,8 @@ fun EntryCard(
     modifier: Modifier,
     entry: JournalEntry,
     uiState: LandingScreenUiState,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDoubleClick: () -> Unit
 ) {
     val entryCreationViewModel = EntryCreationViewModel()//to get prompts
     val imagePainter = rememberImagePainter(data = entry.imageUrl)
@@ -62,8 +71,18 @@ fun EntryCard(
             // Adjust the camera distance to enhance the 3D effect
             cameraDistance = 8 * density
         }
-        .clickable(onClick = onClick)) {//do what is passed in as the click action
-
+        .pointerInput(entry) { // Use pointerInput for detecting gestures
+            detectTapGestures(
+                onDoubleTap = {
+                    // Handle double-click here
+                    onDoubleClick()
+                },
+                onTap = {
+                    // Handle single-click here
+                    onClick()
+                }
+            )
+        }) {
         if (uiState.isFlipped) {
             //display when isFlipped == true
             EntryDisplayScreen(viewModel = entryCreationViewModel, entry = entry)
@@ -102,10 +121,12 @@ fun EntryCard(
 @Composable
 fun EntryList(
     entries: List<JournalEntry>,
+    uiState: LandingScreenUiState, // Replace with actual type
     onHandleEvent: (LandingScreenEvent) -> Unit,
-    uiState: LandingScreenUiState
 ) {
-    val scrollState = rememberLazyListState()
+    val scrollState: LazyListState = rememberLazyListState()
+    val showDeleteDialog = remember { mutableStateOf(false) }
+    val entryToDelete = remember { mutableStateOf<JournalEntry?>(null) }
 
     Box(modifier = Modifier.padding(MaterialTheme.spacing.medium)) {
         LazyColumn(state = scrollState) {
@@ -120,28 +141,65 @@ fun EntryList(
                         for (entry in chunk) {
                             EntryCard(
                                 modifier = Modifier
-                                    .weight(1f) // This should work correctly in a Row
+                                    .weight(1f)
                                     .aspectRatio(2.45f / 3f),
                                 entry = entry,
                                 uiState = uiState,
-                                onClick = { onHandleEvent(LandingScreenEvent.EntryCardClicked(entry)) }
+                                onClick = { onHandleEvent(LandingScreenEvent.EntryCardClicked(entry)) },
+                                onDoubleClick = {
+                                    entryToDelete.value = entry
+                                    showDeleteDialog.value = true
+                                }
                             )
                             if (chunk.size == 2 && entry != chunk.last()) {
                                 Spacer(modifier = Modifier.width(MaterialTheme.spacing.medium))
                             }
                         }
                         if (chunk.size == 1) {
-                            Spacer(modifier = Modifier.weight(1f)) // This ensures the single card is centered
+                            Spacer(modifier = Modifier.weight(1f))
                         }
                     }
-
                     Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
-
                 }
             }
         }
+        // This is the correct place to have your AlertDialog - outside of the LazyColumn and loops
+        if (showDeleteDialog.value) {
+            AlertDialog(
+                onDismissRequest = {
+                    showDeleteDialog.value = false
+                    entryToDelete.value = null
+                },
+                title = { Text("Confirm Deletion") },
+                text = { Text("Are you sure you want to delete this entry?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            entryToDelete.value?.let { entry ->
+                                onHandleEvent(LandingScreenEvent.EntryDeleted(entry))
+                            }
+                            showDeleteDialog.value = false
+                            entryToDelete.value = null
+                        }
+                    ) {
+                        Text("Yes")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = {
+                        showDeleteDialog.value = false
+                        entryToDelete.value = null
+                    }) {
+                        Text("No")
+                    }
+                }
+            )
+        }
     }
 }
+
+// Assuming `MaterialTheme.spacing` and `LandingScreenEvent` are defined in your codebase.
+
 
 
 @Composable
@@ -181,7 +239,8 @@ fun EnlargedEntryView(
                 .fillMaxHeight(fraction = 0.7f),
             entry = entry,
             uiState = uiState,
-            onClick = onCardFlip
+            onClick = onCardFlip,
+            onDoubleClick = {}
         )
     }
 }
