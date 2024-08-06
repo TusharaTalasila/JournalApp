@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,13 +47,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.example.journalapp.R
 import com.example.journalapp.feature.entry.EntryCreationScreenEvent
 import com.example.journalapp.feature.entry.EntryCreationUiState
@@ -313,45 +318,45 @@ fun MultipleChoice(
         // uiState recomposes due to the list update
         scrollState.scrollToItem(0)
     }
-        LazyColumn(
-            state = scrollState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = MaterialTheme.spacing.small)
-                .background(
-                    color = MaterialTheme.colorScheme.background,
-                    shape = RoundedCornerShape(8.dp)
-                )
-        ) {
-            items(map.toList()) { entry ->
-                val isSelected = selectedStates[entry.first] ?: false
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(75.dp)
-                        .padding(vertical = MaterialTheme.spacing.large)
-                        .background(
-                            color = if (isSelected) selectedColor else originalColor,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .clickable {
-                            selectedStates[entry.first] = !isSelected
-                            onHandleEvent(
-                                EntryCreationScreenEvent.AnswerMcEntry(entry, index)
-                            )
-                        },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large),
-                        text = entry.first,
-                        style = MaterialTheme.typography.labelLarge,
+    LazyColumn(
+        state = scrollState,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = MaterialTheme.spacing.small)
+            .background(
+                color = MaterialTheme.colorScheme.background,
+                shape = RoundedCornerShape(8.dp)
+            )
+    ) {
+        items(map.toList()) { entry ->
+            val isSelected = selectedStates[entry.first] ?: false
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .height(75.dp)
+                    .padding(vertical = MaterialTheme.spacing.large)
+                    .background(
+                        color = if (isSelected) selectedColor else originalColor,
+                        shape = RoundedCornerShape(8.dp)
                     )
-                }
+                    .clickable {
+                        selectedStates[entry.first] = !isSelected
+                        onHandleEvent(
+                            EntryCreationScreenEvent.AnswerMcEntry(entry, index)
+                        )
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.large),
+                    text = entry.first,
+                    style = MaterialTheme.typography.labelLarge,
+                )
             }
-
         }
+
+    }
 
 }
 
@@ -445,8 +450,8 @@ fun ImageDisplay(string: String) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(text = "Your Image", style = MaterialTheme.typography.headlineLarge)
-        //space
         Spacer(modifier = Modifier.size(MaterialTheme.spacing.xLarge))
+
         Box(
             modifier = Modifier
                 .aspectRatio(1f)
@@ -457,13 +462,18 @@ fun ImageDisplay(string: String) {
                     4.dp,
                     MaterialTheme.colorScheme.tertiary,
                     RoundedCornerShape(8.dp)
-                )
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            AsyncImage(
-                model = string,
-                contentDescription = null,
-            )
+            val painter = rememberAsyncImagePainter(model = string)
+            Image(painter = painter, contentDescription = null, contentScale = ContentScale.Crop)
+            if (painter.state is AsyncImagePainter.State.Loading) {
+                CircularProgressIndicator()
+            }
+            if (painter.state is AsyncImagePainter.State.Error) {
+                painterResource(id = R.drawable.errorstate)
+            }
         }
-
     }
 }
+

@@ -21,7 +21,7 @@ class LandingViewModel : BaseViewModel, ViewModel() {
     private val _uiState = MutableStateFlow(LandingScreenUiState())
     val uiState: StateFlow<LandingScreenUiState> = _uiState.asStateFlow()
 
-    init {
+   fun init() {
         fetchJournalEntries()
     }
 
@@ -122,5 +122,6 @@ data class LandingScreenUiState(
 
 enum class SortOption {
     NewestFirst,
-    OldestFirst
+    OldestFirst,
+    Unspecified
 }

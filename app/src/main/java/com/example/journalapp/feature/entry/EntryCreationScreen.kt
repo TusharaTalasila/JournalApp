@@ -58,7 +58,7 @@ fun EntryCreationScreen(
                 .fillMaxSize()
                 .padding(
                     horizontal = MaterialTheme.spacing.large,
-                    vertical = MaterialTheme.spacing.xLarge
+                    vertical = MaterialTheme.spacing.xxLarge
                 )
         ) {
 

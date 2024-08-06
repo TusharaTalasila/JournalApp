@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,6 +52,7 @@ import com.example.journalapp.core.components.SearchBar
 import com.example.journalapp.feature.auth.AuthState
 import com.example.journalapp.feature.auth.AuthViewModel
 import com.example.journalapp.ui.theme.spacing
+import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -136,7 +138,7 @@ fun LandingScreen(
 
                 if (showFilterDialog) {
 
-                    var selectedSortOption by remember { mutableStateOf(SortOption.NewestFirst) }
+                    var selectedSortOption by remember { mutableStateOf(SortOption.Unspecified) }
                     //filter dialog
                     AlertDialog(
                         onDismissRequest = { showFilterDialog = false },
@@ -201,7 +203,7 @@ fun LandingScreen(
                                     setShowFilterDialog(false) // Dismiss the dialog
                                 }
                             ) {
-                                Text("Apply")
+                                Text("Apply", color = MaterialTheme.colorScheme.onPrimaryContainer)
                             }
                         },
                         //action if user doesn't wanna go back
@@ -211,31 +213,53 @@ fun LandingScreen(
                                     setShowFilterDialog(false)
                                 }
                             ) {
-                                Text("Cancel")
+                                Text("Cancel", color = MaterialTheme.colorScheme.onPrimaryContainer)
                             }
                         }
                     )
                 }
             }
 
-           /* if(uiState.value.filteredEntries.isEmpty()){
+            if (uiState.value.filteredEntries.isEmpty() && uiState.value.journalEntries.isNotEmpty()) {
                 //add no results found screen
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = MaterialTheme.colorScheme.tertiary,
+                            color = MaterialTheme.colorScheme.background,
                             shape = RoundedCornerShape(8.dp)
                         )
-                        .weight(1f),
+                        .weight(1f)
+                        ,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // Place your illustration here
+                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.large))
                     Image(
                         painter = painterResource(id = R.drawable.noresults),
                         contentDescription = "Illustration"
                     )
+                    Text(
+                        text = "Uh Oh, no results found!",
+                        style = MaterialTheme.typography.displayMedium
+                    )
                 }
-            }*/
+            } else if(uiState.value.filteredEntries.isEmpty() && uiState.value.journalEntries.isEmpty()){
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.tertiary,
+                            shape = RoundedCornerShape(MaterialTheme.spacing.small)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            else {
                 //entry display
                 Box(
                     modifier = Modifier
@@ -249,8 +273,9 @@ fun LandingScreen(
                     val entries = uiState.value.filteredEntries
                     EntryList(entries = entries, onHandleEvent, uiState.value)
                 }
-
             }
+
+        }
 
         //make entries button row
         Column(
