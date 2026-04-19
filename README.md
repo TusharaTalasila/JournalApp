@@ -30,10 +30,6 @@ To run this app locally, follow these steps:
 5. Update local properties file: You need to add your own API keys for the `gptKey` and `dalleKey` variables to use.
 6. Build and run the app!
 
-## Tutorial
-
-[Add video runthrough here]
-
 ## Contact
 
 For questions or feedback, please reach out to tushara.talasila@gmail.com.
